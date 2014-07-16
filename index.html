@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+		
+        <title>OL-Tools</title>
+
+        <link rel="stylesheet" href="css/oltools.css" type="text/css">
+		
+        <link rel="stylesheet" href="lib/openlayers/theme/default/style.css" type="text/css">
+		
+        <!--link rel="stylesheet" href="lib/jquery-ui-1.11.0/jquery-ui.css" type="text/css">
+        <link rel="stylesheet" href="lib/jquery-ui-1.11.0/jquery-ui.structure.css" type="text/css">
+        <link rel="stylesheet" href="lib/jquery-ui-1.11.0/jqueryui-editable.css" type="text/css"-->
+
+        <script src="lib/openlayers/OpenLayers.js"></script>
+		<script src="lib/openlayers-ext/ExtendedRenderers.js"></script>
+		<script src="lib/openlayers-ext/DeleteFeature.js"></script>
+		
+		<script src="lib/jquery-ui-1.11.0/external/jquery/jquery.js"></script>
+		<script src="lib/jquery-ui-1.11.0/jquery-ui.js"></script>
+		<!--script src="lib/jquery-ui-1.11.0/jqueryui-editable.js"></script-->
+		
+		<script src="scripts/OLTools.js"></script>
+		<script src="scripts/Tool.js"></script>		
+		<script src="scripts/EditPopup.js"></script>
+		<script src="scripts/LinearAnnotation.js"></script>
+		
+        <script type="text/javascript">
+            var map;
+            function init(){                
+                map = new OpenLayers.Map('map', {
+                    controls: [
+                        new OpenLayers.Control.Navigation(),
+                        new OpenLayers.Control.PanZoomBar(),
+                        new OpenLayers.Control.LayerSwitcher({'ascending':false}),
+                        new OpenLayers.Control.ScaleLine(),
+                        new OpenLayers.Control.MousePosition(),
+                    ],
+                    numZoomLevels: 15                    
+                });
+
+                var ol_wms = new OpenLayers.Layer.WMS(
+                    "OpenLayers WMS",
+                    "http://vmap0.tiles.osgeo.org/wms/vmap0",
+                    {layers: 'basic'} 
+                );
+
+                var gwc = new OpenLayers.Layer.WMS(
+                    "Global Imagery",
+                    "http://maps.opengeo.org/geowebcache/service/wms",
+                    {layers: "bluemarble"},
+                    {tileOrigin: new OpenLayers.LonLat(-180, -90)}
+                );
+
+                map.addLayers([ol_wms, gwc]);
+
+                if (!map.getCenter()) {
+                    map.zoomToMaxExtent();
+                }
+				
+				var linearAnnotation = new OLTools.Tool.LinearAnnotation({
+					map: map,
+					vectorName: "Linear Annotation",
+					strategies: [new OpenLayers.Strategy.Fixed()],
+					protocol: new OpenLayers.Protocol.HTTP({
+						url: "data/roads.json",
+						format: new OpenLayers.Format.GeoJSON()
+					})
+				});
+				
+				map.zoomToExtent(new OpenLayers.Bounds(146.44, -41.54, 147.14, -40.75));
+            }
+        </script>
+    </head>
+    <body onload="init()">
+		<div id="map" class="map"></div>
+    </body>
+</html>
