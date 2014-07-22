@@ -37,13 +37,14 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 			if(options.url){
 				this.markersLayer = new OpenLayers.Layer.HTMLMarkers(options.vectorName || "rich-text-vector", {
 					location: options.url,
-					styleMap: {
+					/*styleMap: {
 						style: {
 							'externalGraphic': OpenLayers.Util.getImageLocation("marker.png"),
 							'graphicWidth': 21,
 							'graphicHeight': 25
 						}
-					},
+					},*/
+					useIconStyle: false,
 					labelAttribute: this.textAttribute
 				});
 			}else{
