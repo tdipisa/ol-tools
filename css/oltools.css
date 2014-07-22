@@ -2,6 +2,7 @@
     width: 1024px;
     height: 748px;
     border: 1px solid #ccc;
+	float: left;
 }
 
 .customEditingToolbar {
@@ -24,6 +25,16 @@
 
 .olControlDrawFeaturePathItemActive { 
 	background-image: url("../lib/openlayers/theme/default/img/draw_line_on.png");
+	background-repeat: no-repeat;                                                               
+}
+
+.olControlDrawFeaturePointItemInactive { 
+	background-image: url("../lib/openlayers/theme/default/img/add_point_off.png");
+	background-repeat: no-repeat;
+}
+
+.olControlDrawFeaturePointItemActive { 
+	background-image: url("../lib/openlayers/theme/default/img/add_point_on.png");
 	background-repeat: no-repeat;                                                               
 }
 
@@ -85,4 +96,34 @@
 #tblData span{
     float: left;
     width: 60px;
+}
+
+#controlsPanel{
+	float: right;
+	width: 600px;
+}
+
+#controlToggle li {
+	list-style: none;
+}
+
+#ckeditor-panel{
+	position: absolute; 
+	display: none; 
+	border: 1px solid #bfbfbf;
+	background: #cfd1cf;
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#ebebeb),to(#cfd1cf));
+	background-image: -moz-linear-gradient(top,#ebebeb,#cfd1cf);
+	background-image: -webkit-linear-gradient(top,#ebebeb,#cfd1cf);
+	background-image: -o-linear-gradient(top,#ebebeb,#cfd1cf);
+	background-image: -ms-linear-gradient(top,#ebebeb,#cfd1cf);
+	background-image: linear-gradient(top,#ebebeb,#cfd1cf);
+}
+
+#rich_text_close_button{
+	float: right;
+}
+
+#rich_text_save_button{
+	float: right;
 }

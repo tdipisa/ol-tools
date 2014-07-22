@@ -16,9 +16,14 @@
         <link rel="stylesheet" href="lib/jquery-ui-1.11.0/jquery-ui.structure.css" type="text/css">
         <link rel="stylesheet" href="lib/jquery-ui-1.11.0/jqueryui-editable.css" type="text/css"-->
 
+		<!-- Only for test purpose 
+        <script src="lib/openlayers/lib/OpenLayers.js"></script>-->
         <script src="lib/openlayers/OpenLayers.js"></script>
+		
 		<script src="lib/openlayers-ext/ExtendedRenderers.js"></script>
 		<script src="lib/openlayers-ext/DeleteFeature.js"></script>
+		<script src="lib/openlayers-ext/HTMLMarkers.js"></script>
+		<script src="lib/openlayers-ext/HTMLMarkerLabel.js"></script>
 		
 		<script src="lib/jquery-ui-1.11.0/external/jquery/jquery.js"></script>
 		<script src="lib/jquery-ui-1.11.0/jquery-ui.js"></script>
@@ -27,8 +32,13 @@
 		<script src="scripts/OLTools.js"></script>
 		<script src="scripts/Tool.js"></script>		
 		<script src="scripts/EditPopup.js"></script>
+		<script src="scripts/RichTextEditPopup.js"></script>
 		<script src="scripts/LinearAnnotation.js"></script>
+		<script src="scripts/RichText.js"></script>
 		
+		<script src="lib/ckeditor_4.4.3_standard/ckeditor.js"></script>
+		<script src="lib/ckeditor_4.4.3_standard/adapters/jquery.js"></script>
+
         <script type="text/javascript">
             var map;
             function init(){                
@@ -62,21 +72,78 @@
                     map.zoomToMaxExtent();
                 }
 				
-				var linearAnnotation = new OLTools.Tool.LinearAnnotation({
+				linearAnnotation = new OLTools.Tool.LinearAnnotation({
 					map: map,
 					vectorName: "Linear Annotation",
 					strategies: [new OpenLayers.Strategy.Fixed()],
-					protocol: new OpenLayers.Protocol.HTTP({
-						url: "data/roads.json",
-						format: new OpenLayers.Format.GeoJSON()
-					})
+					url: "data/roads.json"
 				});
 				
-				map.zoomToExtent(new OpenLayers.Bounds(146.44, -41.54, 147.14, -40.75));
+				richText = new OLTools.Tool.RichText({
+					map: map,
+					vectorName: "Rich Text Annotation",
+					strategies: [new OpenLayers.Strategy.Fixed()],
+					url: "data/point.json",
+					textAttribute: "TEXT"
+				});	
+
+				map.zoomToExtent(new OpenLayers.Bounds(-180, -90, 180, 90));	
             }
+			
+			function toggleControl(tool){
+				if(tool.value == "none"){
+					if(richText.active){
+						richText.deactivate();
+					}
+					
+					if(linearAnnotation.active){
+						linearAnnotation.deactivate();
+					}
+					
+					map.zoomToExtent(new OpenLayers.Bounds(-180, -90, 180, 90));
+				}else if(tool.value == "line"){
+					if(richText.active){
+						richText.deactivate();
+					}
+					
+					if(!linearAnnotation.active){
+						linearAnnotation.activate();
+						map.zoomToExtent(new OpenLayers.Bounds(146.44, -41.54, 147.14, -40.75));
+					}					
+				}else if(tool.value = "point"){
+					if(linearAnnotation.active){
+						linearAnnotation.deactivate();
+					}
+					
+					if(!richText.active){
+						richText.activate();
+						map.zoomToExtent(new OpenLayers.Bounds(-180, -90, 180, 90));
+					}	
+				}				
+			}
         </script>
     </head>
     <body onload="init()">
 		<div id="map" class="map"></div>
+		<div id="controlsPanel">
+			<span>Available Tools:</span>
+			<ul id="controlToggle">
+				<li>
+					<input type="radio" name="type" value="none" id="noneToggle"
+						   onclick="toggleControl(this);" checked="checked" />
+					<label for="noneToggle">None</label>
+				</li>
+				<li>
+					<input type="radio" name="type" value="line" id="lineToggle"
+						   onclick="toggleControl(this);" />
+					<label for="lineToggle">Line Annotation</label>
+				</li>
+				<li>
+					<input type="radio" name="type" value="point" id="pointToggle"
+						   onclick="toggleControl(this);" />
+					<label for="pointToggle">Rich Text</label>
+				</li>
+			</ul>		
+		</div>
     </body>
 </html>

@@ -8,70 +8,87 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 	
 	featureAttributes: [],
 	
+	controls: [],
+	
+	panel: null,
+	
+	active: false,
+	
+	selectControlName: "Annotation Select Feature",
+	
     initialize: function(options) {
 	    this.$super('initialize', options);
-		
-		if(options && options.map){
+		this.options = options;	
+
+		if(this.options.map){
 			this.map = options.map;
-			
 			this.popup = new OLTools.Tool.EditPopup(this.map); 
-			
-			this.styles = new OpenLayers.StyleMap({
-				"default": new OpenLayers.Style(null, {
-					rules: [
-						new OpenLayers.Rule({
-							symbolizer: {
-								"Line": {
-									strokeWidth: 2,
-									strokeOpacity: 1,
-									strokeColor: "#000000",
-									orientation: true,        // to draw arows
-									strokeLineJoinRadius: 0.5 // to draw curve between segments
-								}
+		}
+		
+		this.styles = new OpenLayers.StyleMap({
+			"default": new OpenLayers.Style(null, {
+				rules: [
+					new OpenLayers.Rule({
+						symbolizer: {
+							"Line": {
+								strokeWidth: 2,
+								strokeOpacity: 1,
+								strokeColor: "#000000",
+								orientation: true,        // to draw arows
+								strokeLineJoinRadius: 0.5 // to draw curve between segments
 							}
-						})
-					]
-				}),
-				"select": new OpenLayers.Style(null, {
-					rules: [
-						new OpenLayers.Rule({
-							symbolizer: {
-								"Line": {
-									strokeWidth: 2,
-									strokeOpacity: 1,
-									strokeColor: "#0000ff",
-									orientation: true,        // to draw arows
-									strokeLineJoinRadius: 0.5 // to draw curve between segments
-								}
+						}
+					})
+				]
+			}),
+			"select": new OpenLayers.Style(null, {
+				rules: [
+					new OpenLayers.Rule({
+						symbolizer: {
+							"Line": {
+								strokeWidth: 2,
+								strokeOpacity: 1,
+								strokeColor: "#0000ff",
+								orientation: true,        // to draw arows
+								strokeLineJoinRadius: 0.5 // to draw curve between segments
 							}
-						})
-					]
-				}),
-				"temporary": new OpenLayers.Style(null, {
-					rules: [
-						new OpenLayers.Rule({
-							symbolizer: {
-								"Line": {
-									strokeWidth: 2,
-									strokeOpacity: 1,
-									strokeColor: "#0000ff",
-									orientation: true,        // to draw arows
-									strokeLineJoinRadius: 0.5 // to draw curve between segments
-								}
+						}
+					})
+				]
+			}),
+			"temporary": new OpenLayers.Style(null, {
+				rules: [
+					new OpenLayers.Rule({
+						symbolizer: {
+							"Line": {
+								strokeWidth: 2,
+								strokeOpacity: 1,
+								strokeColor: "#0000ff",
+								orientation: true,        // to draw arows
+								strokeLineJoinRadius: 0.5 // to draw curve between segments
 							}
-						})
-					]
-				})
-			});		
-			
+						}
+					})
+				]
+			})
+		});	
+    },
+	
+	activate: function(){
+		var options = this.options;
+
+		if(options){			
 			// /////////////////////////////////////
 			// Defining Layer Vector for this tool
 			// /////////////////////////////////////		
-			if(options.strategies && options.protocol){
+			if(options.strategies && options.url){
 				this.vectorLayer = new OpenLayers.Layer.Vector(options.vectorName || "linear-annotation-vector", {
 					renderers: ['SVGExtended', 'VMLExtended', 'CanvasExtended'],
 					strategies: options.strategies,                
-					protocol: options.protocol,
+					protocol: new OpenLayers.Protocol.HTTP({
+						url: options.url,
+						format: new OpenLayers.Format.GeoJSON()
+					}),
 					styleMap: this.styles
 				});
 			}else{
@@ -100,6 +117,8 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 				}
 			});
 			
+			this.controls.push(drawLine);
+			
 			var edit_reshape = new OpenLayers.Control.ModifyFeature(this.vectorLayer, {
 				title: "Modify Feature Reshape",
 				displayClass: "olControlModifyFeature",
@@ -110,11 +129,7 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 				this.hideEditPopup();
 			});
 			
-			/*var edit = new OpenLayers.Control.ModifyFeature(this.vectorLayer, {
-				title: "Modify Feature Edit",
-				displayClass: "olControlModifyFeatureDrag",
-				mode:  OpenLayers.Control.ModifyFeature.RESIZE |  OpenLayers.Control.ModifyFeature.DRAG | OpenLayers.Control.ModifyFeature.ROTATE
-			});*/
+			this.controls.push(edit_reshape);
 
 			var del = new DeleteFeature(this.vectorLayer, {title: "Delete Feature"});
 			
@@ -122,26 +137,12 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 				this.hideEditPopup();
 			});
 		   
-			/*var save = new OpenLayers.Control.Button({
-				title: "Save Changes",
-				trigger: function() {
-					//var control = edit.feature ? edit : (edit_reshape.feature ? edit_reshape : null); 
-					var control = edit_reshape.feature ? edit_reshape : null; 
-					if(control) {
-						control.selectControl.unselectAll();
-					}
-					
-					//saveStrategy.save();
-					
-					alert("Saved Successfully");
-				},
-				displayClass: "olControlSaveFeatures"
-			});*/
+		    this.controls.push(del);
 			
 			var select = new OpenLayers.Control.SelectFeature(
 				this.vectorLayer,
 				{
-					title: "Annotation Select Feature",
+					title: this.selectControlName,
 					clickout: false, 
 					toggle: false,
 					multiple: false, 
@@ -155,16 +156,47 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 				this.hideEditPopup();
 			});
 			
-			var panel = new OpenLayers.Control.Panel({
+			this.controls.push(select);
+			
+			this.panel = new OpenLayers.Control.Panel({
 				displayClass: 'customEditingToolbar',
 				allowDepress: true
 			});
 
-			panel.addControls([drawLine, edit_reshape, /*edit,*/ del/*, save*/, select]);
+			this.panel.addControls(this.controls);			
+			this.map.addControl(this.panel);
 			
-			this.map.addControl(panel);
+			this.active = true;
+		}else{
+			this.active = false;
 		}
-    },
+	},
+	
+	deactivate: function(){
+		// destroy map controls of this tool
+		for(var i=0; i< this.controls.length; i++){
+			var control = this.controls[i];
+			this.map.removeControl(control);
+			control.destroy();					
+		}
+		
+		this.controls = [];
+		
+		// destroy the tools panel contained
+		this.map.removeControl(this.panel);
+		this.panel.destroy();
+		
+		// erase the vector layer and then destroy it
+		this.vectorLayer.removeAllFeatures();
+		this.map.removeLayer(this.vectorLayer);
+		this.vectorLayer.destroy();			
+		
+		this.featureAttributes = [];
+		
+		this.hideEditPopup();
+		
+		this.active = false;
+	},
 		
 	attachEventListeners: function(){
 		this.vectorLayer.events.on({
@@ -172,18 +204,20 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 				var feature = event.feature;
 				
 				// Check if the select control is active, in this case don't show buttons in popup
-				var control = this.map.getControlsBy("title", "Annotation Select Feature")[0];
+				var control = this.map.getControlsBy("title", this.selectControlName)[0];
 				this.showEditPopup(feature, control.active ? false : true);
 			},
 			featureadded: function(event){
 				var feature = event.feature;
 				
+				// Save the feature attribute locally at startup
 				if(this.featureAttributes.length < 1){
 					for(attribute in feature.attributes){
 						this.featureAttributes.push(attribute);
 					}
 				}
 				
+				// Populate the new added feature by the user with FeatureType attributes
 				if(jQuery.isEmptyObject(feature.attributes)){
 					for(var i=0; i<this.featureAttributes.length; i++){
 						var attribute = this.featureAttributes[i];
