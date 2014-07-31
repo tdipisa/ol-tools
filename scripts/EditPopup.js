@@ -12,20 +12,25 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 		saved: false
 	},
 	
-	map: null,
-	
-    initialize: function(map) {
-		this.map = map;
+    initialize: function(options) {
+		OLTools.Tool.prototype.initialize.apply(this, arguments);
+		
 		this.featureModified = {
 			geometry: false,
 			attributes: false
 		};
+	},
+	
+	createPopup: function(){
+		if($("#editPopup")){
+			$("#editPopup").remove();
+		}
 		
-		$("<div id='popup'>" +
+		$("<div class='popup' id='editPopup'>" +
 			"<table id='tblData'>" +
 				"<thead>" +
 					"<tr>" + 
-						'<th id="popup_title" rowspan="3">' + 
+						'<th class=\"popup_title\" id="popup_title" rowspan="3">' + 
 							"Edit Attributes" +
 						"</th>" +
 					"</tr>" +
@@ -35,25 +40,31 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 			"</table>" +
 		"</div>").appendTo("body"); 		
 
-		$( "#popup" ).draggable();
+		$( "#editPopup" ).draggable();
+		
+		this.created = true
 	},
 	
 	show: function(options){
-		this.feature = options.feature;
-		this.vectorLayer = this.feature.layer;
+		if(!this.created){
+			this.createPopup();
+		}		
 		
-		this.vectorLayer.events.on({
+		this.feature = options.feature;
+		this.layer = this.feature.layer;
+		
+		this.layer.events.on({
 			featuremodified: function(evt){
 				this.featureModified.geometry = true;
 			},
             scope: this
 		});
 		
-		$('#popup').css('left', options.location.x);
-		$('#popup').css('top', options.location.y);
-		$('#popup').css('display','inline');     
-		$("#popup").css("position", "absolute");
-		$("#popup").css("z-index", "10000");
+		$('#editPopup').css('left', options.location.x);
+		$('#editPopup').css('top', options.location.y);
+		$('#editPopup').css('display','inline');     
+		$("#editPopup").css("position", "absolute");
+		$("#editPopup").css("z-index", "10000");
 		
 		$("#tblData tbody").empty();
 		
@@ -63,7 +74,9 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 		    $("#tblData tbody").append( 
 				"<tr>" + 
 					"<td>" + 
-						"<span>" + attribute + "</span><span>:</span><input class='attribute_field' type='text' value='" + value + "'/>" + 
+						"<span id=\"span_" + attribute + "\">" + attribute + "</span>" + 
+						"<span>:</span>" + 
+						"<input id=\"attribute_field_" + attribute + "\" class='attribute_field' type='text' value='" + value + "'/>" + 
 					"</td>" + 
 				"</tr>"
 			);		
@@ -75,8 +88,8 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 			$("#popup_title").text("Edit Attributes");
 			
 			$("#tblData tbody").append( 
-				"<button id='popup_close_button' type='button'>Close</button>" +
-				"<button id='popup_save_button' type='button'>Save</button>"
+				"<button class=\"close_button\" id='popup_close_button' type='button'>Close</button>" +
+				"<button class=\"save_button\" id='popup_save_button' type='button'>Save</button>"
 			);	
 			
 			$("#popup_close_button").click(function(){
@@ -92,7 +105,7 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 				// Delete the feature if any attributes has been evaluated
 				//
 				if(evalueatedAttr < axistingAttr){
-					editPopup.vectorLayer.destroyFeatures([editPopup.feature]);
+					editPopup.layer.destroyFeatures([editPopup.feature]);
 				}else{							
 					//
 					// Uselect the feature
@@ -123,15 +136,17 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 						
 						if(!c){
 							if(editPopup.featureModified.geometry === true){
-								editPopup.vectorLayer.removeFeatures([editPopup.feature]);
-								editPopup.vectorLayer.addFeatures([editPopup.prevFeature]);
+								editPopup.layer.removeFeatures([editPopup.feature]);
+								editPopup.layer.addFeatures([editPopup.prevFeature]);
 							}
 						}else{
 							for(attribute in editPopup.feature.attributes){					
-								$("#tblData span").each(function(index){
+								var span = $("#tblData span[id*='span_']");
+								span.each(function(index){
 									var value = this.innerHTML;
 									if(value == attribute){
-										editPopup.feature.attributes[attribute] = this.nextSibling.nextSibling.value;
+										var input = $("#attribute_field_" + attribute)[0];
+										editPopup.feature.attributes[attribute] = input.value;
 									}					
 								});
 							}
@@ -144,11 +159,13 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 			});
 			
 			$("#popup_save_button").click(function(){
-				for(attribute in editPopup.feature.attributes){					
-					$("#tblData span").each(function(index){
+				for(attribute in editPopup.feature.attributes){	
+					var span = $("#tblData span[id*='span_']");
+					span.each(function(index){
 						var value = this.innerHTML;
 						if(value == attribute){
-							editPopup.feature.attributes[attribute] = this.nextSibling.nextSibling.value;
+							var input = $("#attribute_field_" + attribute)[0];
+							editPopup.feature.attributes[attribute] = input.value;
 						}					
 					});
 				}
@@ -181,9 +198,9 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 					var c = confirm("Are you sure to save these modifications");
 					
 					if(!c){
-						editPopup.vectorLayer.removeFeatures([editPopup.feature]);
+						editPopup.layer.removeFeatures([editPopup.feature]);
 						if(editPopup.prevFeature){
-							editPopup.vectorLayer.addFeatures([editPopup.prevFeature]);
+							editPopup.layer.addFeatures([editPopup.prevFeature]);
 						}
 					}
 					
@@ -198,11 +215,14 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 			});
 			
 			$("#tblData tbody").append( 
-				"<button id='popup_close_button' type='button'>Close</button>"
+				"<button class=\"close_button\" id='popup_close_button' type='button'>Close</button>"
 			);	
 			
 			$("#popup_close_button").click(function(){
 				editPopup.hide();
+				if(editPopup.layer.selectControl){
+					editPopup.layer.selectControl.unselectAll();
+				}				
 			});
 		}
 		
@@ -211,7 +231,7 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 	
 	hide: function(){
 		$("#tblData tbody").empty();
-		$('#popup').css('display','none');
+		$('#editPopup').css('display','none');
 		
 		this.visible = false;
 	},

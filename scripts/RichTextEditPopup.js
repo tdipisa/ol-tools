@@ -2,11 +2,12 @@ OLTools.Tool.RichTextEditPopup = OLTools.Class(OLTools.Tool.EditPopup, {
 	
 	textAttribute: null,
 	
-    initialize: function(map, textAttribute) {
-		this.map = map;
-		this.textAttribute = textAttribute;
+    initialize: function(options) {
+		OLTools.Tool.EditPopup.prototype.initialize.apply(this, arguments);
 		
-		if(this.map = map && this.textAttribute){
+		if(options.textAttribute){		
+			this.textAttribute = options.textAttribute;
+			
 			this.featureModified = {
 				geometry: false,
 				attributes: false
@@ -62,8 +63,8 @@ OLTools.Tool.RichTextEditPopup = OLTools.Class(OLTools.Tool.EditPopup, {
 		var editPopup = this;
 		if(options.edit === true){
 			$("#ckeditor-panel").append( 
-				"<button id='rich_text_close_button' type='button'>Close</button>" +
-				"<button id='rich_text_save_button' type='button'>Save</button>"
+				"<button class=\"close_button\" id='rich_text_close_button' type='button'>Close</button>" +
+				"<button class=\"save_button\" id='rich_text_save_button' type='button'>Save</button>"
 			);	
 			
 		    $("#rich_text_save_button").click(function(){

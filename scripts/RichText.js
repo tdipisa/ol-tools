@@ -1,14 +1,12 @@
 OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
-
-	map: null,
-
-	markersLayer: null,
+	
+	layer: null,
 	
 	popup: null,
 	
 	featureAttributes: [],
 	
-    controls: [],
+	controls: [],
 	
 	panel: null,
 	
@@ -17,26 +15,22 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 	textAttribute: null,
 	
     initialize: function(options) {
-	    this.$super('initialize', options);		
-		this.options = options;
-		
-		if(this.options.map && this.options.textAttribute){
-			this.map = this.options.map;
-			this.textAttribute = this.options.textAttribute;
-			this.popup = new OLTools.Tool.RichTextEditPopup(this.map, this.textAttribute); 
+	    OLTools.Tool.prototype.initialize.apply(this, arguments);	
+
+		if(options.textAttribute){
+			this.textAttribute = options.textAttribute;
+			this.popup = new OLTools.Tool.RichTextEditPopup(options); 
 		}
     },
 	
-	activate: function(){
-		var options = this.options;
-		
-		if(options){			
+	activate: function(){		
+		if(this.options){			
 			// /////////////////////////////////////
 			// Defining Layer Vector for this tool
 			// /////////////////////////////////////		
-			if(options.url){
-				this.markersLayer = new OpenLayers.Layer.HTMLMarkers(options.vectorName || "rich-text-vector", {
-					location: options.url,
+			if(this.options.url){
+				this.layer = new OpenLayers.Layer.HTMLMarkers(this.options.vectorName || "rich-text-vector", {
+					location: this.options.url,
 					/*styleMap: {
 						style: {
 							'externalGraphic': OpenLayers.Util.getImageLocation("marker.png"),
@@ -48,7 +42,7 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 					labelAttribute: this.textAttribute
 				});
 			}else{
-				this.markersLayer = new OpenLayers.Layer.HTMLMarkers(options.vectorName || "rich-text-vector", {
+				this.layer = new OpenLayers.Layer.HTMLMarkers(this.options.vectorName || "rich-text-vector", {
 					style: {
 						'externalGraphic': OpenLayers.Util.getImageLocation("marker.png")
 					}
@@ -57,7 +51,7 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 
 			this.attachEventListeners();
 			
-			this.map.addLayers([this.markersLayer]);
+			this.map.addLayers([this.layer]);
 			
 			// /////////////////////////////////////
 			// Defining Draw Control
@@ -81,17 +75,19 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 					data.attributes[attribute] = "";
 				}
 
-				var markerFeature = new OpenLayers.HTMLFeature(this.markersLayer, position, data);			
-				this.markersLayer.features.push(markerFeature);
-				var marker = markerFeature.createMarker(data.attributes[this.textAttribute], this.markersLayer.markerClick);
-				this.markersLayer.addMarker(marker);
+				var markerFeature = new OpenLayers.HTMLFeature(this.layer, position, data);			
+				this.layer.features.push(markerFeature);
+				var marker = markerFeature.createMarker(data.attributes[this.textAttribute], this.layer.markerClick);
+				this.layer.addMarker(marker);
 				
 				this.showEditPopup(markerFeature, true);	
 			};
 			drawPoint.events.register('activate', this, function(){
+				this.hideEditPopup();
 				this.map.events.register("click", this, clickHandler);
 			});
 			drawPoint.events.register('deactivate', this, function(){
+				this.hideEditPopup();
 				this.map.events.unregister("click", this, clickHandler);
 			});
 			this.controls.push(drawPoint);
@@ -126,7 +122,7 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 		this.panel.destroy();
 		
 		// erase the markers layer and then destroy it
-		this.markersLayer.destroy();
+		this.layer.destroy();
 		
 		this.featureAttributes = [];
 		
@@ -136,7 +132,7 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 	},
 	
 	attachEventListeners: function(){		
-		this.markersLayer.events.register("loadend", this,function(features){
+		this.layer.events.register("loadend", this,function(features){
 			// Save locally the feature attributes to use for new features
 			var feature = features[0];				
 			for(attribute in feature.data.attributes){
@@ -145,7 +141,7 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 		});
 		
 		var me = this;
-		this.markersLayer.markerClick = function(evt) {
+		this.layer.markerClick = function(evt) {
 			var drawControl = me.map.getControlsBy("id", "drawPoint")[0];
 			
 			if(drawControl){
@@ -162,7 +158,9 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 	},
 	
 	showEditPopup: function(feature, edit){
-		var location = this.map.getPixelFromLonLat(feature.lonlat);
+		
+		var centerLonLat = feature.lonlat ? feature.lonlat  : feature.geometry.bounds.getCenterLonLat();
+		var location = this.map.getPixelFromLonLat(centerLonLat);
 		
 		var popupOtps = {
 			feature: feature,

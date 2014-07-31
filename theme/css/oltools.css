@@ -1,6 +1,6 @@
 .map {
-    width: 1024px;
-    height: 748px;
+    width: 800px;
+    height: 600px;
     border: 1px solid #ccc;
 	float: left;
 }
@@ -19,78 +19,83 @@
 }
 
 .olControlDrawFeaturePathItemInactive { 
-	background-image: url("../lib/openlayers/theme/default/img/draw_line_off.png");
+	background-image: url("../../lib/openlayers/theme/default/img/draw_line_off.png");
 	background-repeat: no-repeat;
 }
 
 .olControlDrawFeaturePathItemActive { 
-	background-image: url("../lib/openlayers/theme/default/img/draw_line_on.png");
+	background-image: url("../../lib/openlayers/theme/default/img/draw_line_on.png");
 	background-repeat: no-repeat;                                                               
 }
 
 .olControlDrawFeaturePointItemInactive { 
-	background-image: url("../lib/openlayers/theme/default/img/add_point_off.png");
+	background-image: url("../../lib/openlayers/theme/default/img/add_point_off.png");
 	background-repeat: no-repeat;
 }
 
 .olControlDrawFeaturePointItemActive { 
-	background-image: url("../lib/openlayers/theme/default/img/add_point_on.png");
+	background-image: url("../../lib/openlayers/theme/default/img/add_point_on.png");
 	background-repeat: no-repeat;                                                               
 }
 
 .olControlDeleteFeatureItemActive { 
-	background-image: url("../lib/openlayers/theme/default/img/remove_point_on.png");
+	background-image: url("../../lib/openlayers/theme/default/img/remove_point_on.png");
 	background-repeat: no-repeat;
 	background-position: 0px 1px;
 }
 
 .olControlDeleteFeatureItemInactive { 
-	background-image: url("../lib/openlayers/theme/default/img/remove_point_off.png");
+	background-image: url("../../lib/openlayers/theme/default/img/remove_point_off.png");
 	background-repeat: no-repeat;
 	background-position: 0px 1px;
 }
 
 .olControlModifyFeatureItemActive { 
-	background-image: url("../lib/openlayers/theme/default/img/move_feature_on.png");
+	background-image: url("../../lib/openlayers/theme/default/img/move_feature_on.png");
 	background-repeat: no-repeat;
 	background-position: 0px 1px;
 }
 
 .olControlModifyFeatureItemInactive { 
-	background-image: url("../lib/openlayers/theme/default/img/move_feature_off.png");
+	background-image: url("../../lib/openlayers/theme/default/img/move_feature_off.png");
 	background-repeat: no-repeat;
 	background-position: 0px 1px;
 }	
 	
 .olControlModifyFeatureDragItemActive { 
-	background-image: url("../lib/openlayers/theme/default/img/pan_on.png");
+	background-image: url("../../lib/openlayers/theme/default/img/pan_on.png");
 	background-repeat: no-repeat;
 	background-position: 0px 1px;
 }
 
 .olControlModifyFeatureDragItemInactive { 
-	background-image: url("../lib/openlayers/theme/default/img/pan_off.png");
+	background-image: url("../../lib/openlayers/theme/default/img/pan_off.png");
 	background-repeat: no-repeat;
 	background-position: 0px 1px;
 }
 
 .olControlSelectFeatureItemActive { 
-	background-image: url("../lib/openlayers/theme/default/img/info-512.png");
+	background-image: url("../../lib/openlayers/theme/default/img/info-512.png");
 	background-repeat: no-repeat;
 	background-position: 0px 1px;
 }
 
 .olControlSelectFeatureItemInactive { 
-	background-image: url("../lib/openlayers/theme/default/img/Information-Icon.png");
+	background-image: url("../../lib/openlayers/theme/default/img/Information-Icon.png");
 	background-repeat: no-repeat;
 	background-position: 0px 1px;
 }	
 
-#popup{
+.popup{
 	position: absolute; 
 	display: none;  
 	background-color: #E1E7E8;
 	border: 3px solid #CED4D6;
+}
+
+.popup_title{
+	font-size: 14px;
+	font-weight: bold;
 }
 
 #tblData span{
@@ -100,7 +105,7 @@
 
 #controlsPanel{
 	float: right;
-	width: 600px;
+	width: 800px;
 }
 
 #controlToggle li {
@@ -120,10 +125,10 @@
 	background-image: linear-gradient(top,#ebebeb,#cfd1cf);
 }
 
-#rich_text_close_button{
+.close_button{
 	float: right;
 }
 
-#rich_text_save_button{
+.save_button{
 	float: right;
 }

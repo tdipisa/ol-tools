@@ -1,8 +1,6 @@
 OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 
-	map: null,
-	
-	vectorLayer: null,
+	layer: null,
 	
 	popup: null,
 	
@@ -14,16 +12,11 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 	
 	active: false,
 	
-	selectControlName: "Annotation Select Feature",
+	selectControlName: "Linear Annotation Select Feature",
 	
     initialize: function(options) {
-	    this.$super('initialize', options);
-		this.options = options;	
-
-		if(this.options.map){
-			this.map = options.map;
-			this.popup = new OLTools.Tool.EditPopup(this.map); 
-		}
+		OLTools.Tool.prototype.initialize.apply(this, arguments);
+		this.popup = new OLTools.Tool.EditPopup(options); 
 		
 		this.styles = new OpenLayers.StyleMap({
 			"default": new OpenLayers.Style(null, {
@@ -75,24 +68,22 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
     },
 	
 	activate: function(){
-		var options = this.options;
-
-		if(options){			
+		if(this.options){			
 			// /////////////////////////////////////
 			// Defining Layer Vector for this tool
 			// /////////////////////////////////////		
-			if(options.strategies && options.url){
-				this.vectorLayer = new OpenLayers.Layer.Vector(options.vectorName || "linear-annotation-vector", {
+			if(this.options.strategies && this.options.url){
+				this.layer = new OpenLayers.Layer.Vector(this.options.vectorName || "linear-annotation-vector", {
 					renderers: ['SVGExtended', 'VMLExtended', 'CanvasExtended'],
-					strategies: options.strategies,                
+					strategies: this.options.strategies,                
 					protocol: new OpenLayers.Protocol.HTTP({
-						url: options.url,
+						url: this.options.url,
 						format: new OpenLayers.Format.GeoJSON()
 					}),
 					styleMap: this.styles
 				});
 			}else{
-				this.vectorLayer = new OpenLayers.Layer.Vector(options.vectorName || "linear-annotation-vector", {
+				this.layer = new OpenLayers.Layer.Vector(this.options.vectorName || "linear-annotation-vector", {
 					renderers: ['SVGExtended', 'VMLExtended', 'CanvasExtended'],
 					styleMap: this.styles
 				});
@@ -100,26 +91,25 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 
 			this.attachEventListeners();
 
-			this.map.addLayers([this.vectorLayer]);
+			this.map.addLayers([this.layer]);
 			
 			// /////////////////////////////////////
 			// Defining Draw and Modify controls
 			// /////////////////////////////////////
-			var drawLine = new OpenLayers.Control.DrawFeature(this.vectorLayer, OpenLayers.Handler.Path, {
+			var drawLine = new OpenLayers.Control.DrawFeature(this.layer, OpenLayers.Handler.Path, {
 				displayClass: 'olControlDrawFeaturePath'
 			});
-			
+		
 			drawLine.events.register('deactivate', this, function(){
-				this.hideEditPopup();
-				
+				this.hideEditPopup();				
 				if(!this.popup.featureModified.attributes && !this.popup.featureModified.saved){
-					this.vectorLayer.destroyFeatures([this.popup.feature]);					
+					this.layer.destroyFeatures([this.popup.feature]);					
 				}
 			});
 			
 			this.controls.push(drawLine);
 			
-			var edit_reshape = new OpenLayers.Control.ModifyFeature(this.vectorLayer, {
+			var edit_reshape = new OpenLayers.Control.ModifyFeature(this.layer, {
 				title: "Modify Feature Reshape",
 				displayClass: "olControlModifyFeature",
 				mode:  OpenLayers.Control.ModifyFeature.RESHAPE
@@ -131,7 +121,7 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 			
 			this.controls.push(edit_reshape);
 
-			var del = new DeleteFeature(this.vectorLayer, {title: "Delete Feature"});
+			var del = new DeleteFeature(this.layer, {title: "Delete Feature"});
 			
 			del.events.register('activate', this, function(){
 				this.hideEditPopup();
@@ -140,7 +130,7 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 		    this.controls.push(del);
 			
 			var select = new OpenLayers.Control.SelectFeature(
-				this.vectorLayer,
+				this.layer,
 				{
 					title: this.selectControlName,
 					clickout: false, 
@@ -173,33 +163,35 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 	},
 	
 	deactivate: function(){
-		// destroy map controls of this tool
-		for(var i=0; i< this.controls.length; i++){
-			var control = this.controls[i];
-			this.map.removeControl(control);
-			control.destroy();					
+		if(this.active === true){
+			// destroy map controls of this tool
+			for(var i=0; i< this.controls.length; i++){
+				var control = this.controls[i];
+				this.map.removeControl(control);
+				control.destroy();					
+			}
+			
+			this.controls = [];
+			
+			// destroy the tools panel contained
+			this.map.removeControl(this.panel);
+			this.panel.destroy();
+			
+			// erase the vector layer and then destroy it
+			this.layer.removeAllFeatures();
+			this.map.removeLayer(this.layer);
+			this.layer.destroy();			
+			
+			this.featureAttributes = [];
+			
+			this.hideEditPopup();
+			
+			this.active = false;
 		}
-		
-		this.controls = [];
-		
-		// destroy the tools panel contained
-		this.map.removeControl(this.panel);
-		this.panel.destroy();
-		
-		// erase the vector layer and then destroy it
-		this.vectorLayer.removeAllFeatures();
-		this.map.removeLayer(this.vectorLayer);
-		this.vectorLayer.destroy();			
-		
-		this.featureAttributes = [];
-		
-		this.hideEditPopup();
-		
-		this.active = false;
 	},
 		
 	attachEventListeners: function(){
-		this.vectorLayer.events.on({
+		this.layer.events.on({
 			featureselected: function (event) {
 				var feature = event.feature;
 				
@@ -234,8 +226,8 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 		});
 	},
 	
-	showEditPopup: function(feature, edit){
-		var centerLonLat = feature.geometry.bounds.getCenterLonLat();
+	showEditPopup: function(feature, edit){		
+		var centerLonLat = feature.lonlat ? feature.lonlat  : feature.geometry.bounds.getCenterLonLat();
 		var location = this.map.getPixelFromLonLat(centerLonLat);
 		
 		var popupOtps = {

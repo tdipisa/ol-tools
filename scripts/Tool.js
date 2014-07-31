@@ -2,9 +2,13 @@ OLTools.Tool = OLTools.Class({
 
 	map: null,
 	
-	initialize: function(options) {	
-		if(options && options.map){
-			this.map = options.map;
+	options: null,
+	
+	initialize: function(options) {
+		this.options = options;
+		
+		if(this.options && this.options.map){
+			this.map = this.options.map;
 		}
 	}
 	

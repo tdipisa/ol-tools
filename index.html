@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
     <head>
@@ -8,7 +7,7 @@
 		
         <title>OL-Tools</title>
 
-        <link rel="stylesheet" href="css/oltools.css" type="text/css">
+        <link rel="stylesheet" href="theme/css/oltools.css" type="text/css">
 		
         <link rel="stylesheet" href="lib/openlayers/theme/default/style.css" type="text/css">
 		
@@ -33,7 +32,9 @@
 		<script src="scripts/Tool.js"></script>		
 		<script src="scripts/EditPopup.js"></script>
 		<script src="scripts/RichTextEditPopup.js"></script>
+		<script src="scripts/Annotation.js"></script>
 		<script src="scripts/LinearAnnotation.js"></script>
+		<script src="scripts/IconAnnotation.js"></script>
 		<script src="scripts/RichText.js"></script>
 		
 		<script src="lib/ckeditor_4.4.3_standard/ckeditor.js"></script>
@@ -65,8 +66,23 @@
                     {layers: "bluemarble"},
                     {tileOrigin: new OpenLayers.LonLat(-180, -90)}
                 );
+				
+				var gs_wms = new OpenLayers.Layer.WMS(
+                    "GeoSolutions WMS",
+                    "http://demo1.geo-solutions.it/geoserver-enterprise/wms",
+                    {
+						layers: 'GeoSolutions:ne_shaded',
+						tilesorigin: [-180, -90],
+						format: 'image/png8',
+						tiled: true
+					},{
+						isBaseLayer: true,
+						buffer: 0,
+						ratio: 1
+					}
+                );
 
-                map.addLayers([ol_wms, gwc]);
+                map.addLayers([gs_wms, ol_wms, gwc]);
 
                 if (!map.getCenter()) {
                     map.zoomToMaxExtent();
@@ -86,6 +102,28 @@
 					url: "data/point.json",
 					textAttribute: "TEXT"
 				});	
+				
+				iconAnnotation = new OLTools.Tool.IconAnnotation({
+					map: map,
+					vectorName: "Icon Annotation",
+					strategies: [new OpenLayers.Strategy.Fixed()],
+					url: "data/icon.json",
+					iconAttribute: "icon",
+					iconsList: [
+						{name: "Default Icon", url: "theme/img/markers/default_information.png", isDefault: true},
+						{name: "Agritourism", url: "theme/img/markers/agritourism.png"},
+						{name: "Bigcity", url: "theme/img/markers/bigcity.png"},
+						{name: "Bridge mModern", url: "theme/img/markers/bridge_modern.png"},
+						{name: "Arch", url: "theme/img/markers/arch.png"},
+						{name: "Cathedral", url: "theme/img/markers/cathedral.png"},
+						{name: "Forest", url: "theme/img/markers/forest.png"},
+						{name: "Ghost Town", url: "theme/img/markers/ghosttown.png"},
+						{name: "Pin Export", url: "theme/img/markers/pin-export.png"},
+						{name: "You Are Here", url: "theme/img/markers/you-are-here-2.png"},
+						{name: "Tower", url: "theme/img/markers/tower.png"},
+						{name: "Olympic Site", url: "theme/img/markers/olympicsite.png"}
+					]
+				});
 
 				map.zoomToExtent(new OpenLayers.Bounds(-180, -90, 180, 90));	
             }
@@ -100,26 +138,51 @@
 						linearAnnotation.deactivate();
 					}
 					
+					if(iconAnnotation.active){
+						iconAnnotation.deactivate();
+					}
+					
 					map.zoomToExtent(new OpenLayers.Bounds(-180, -90, 180, 90));
 				}else if(tool.value == "line"){
 					if(richText.active){
 						richText.deactivate();
 					}
 					
+					if(iconAnnotation.active){
+						iconAnnotation.deactivate();
+					}
+					
 					if(!linearAnnotation.active){
 						linearAnnotation.activate();
 						map.zoomToExtent(new OpenLayers.Bounds(146.44, -41.54, 147.14, -40.75));
 					}					
-				}else if(tool.value = "point"){
+				}else if(tool.value == "point"){
 					if(linearAnnotation.active){
 						linearAnnotation.deactivate();
+					}
+					
+					if(iconAnnotation.active){
+						iconAnnotation.deactivate();
 					}
 					
 					if(!richText.active){
 						richText.activate();
 						map.zoomToExtent(new OpenLayers.Bounds(-180, -90, 180, 90));
 					}	
-				}				
+				}else if(tool.value == "icon"){
+					if(linearAnnotation.active){
+						linearAnnotation.deactivate();
+					}
+					
+					if(richText.active){
+						richText.deactivate();
+					}
+					
+					if(!iconAnnotation.active){
+						iconAnnotation.activate();
+						map.zoomToExtent(new OpenLayers.Bounds(-90.17, 24.98, -72.61, 38.05));
+					}	
+				}					
 			}
         </script>
     </head>
@@ -142,6 +205,11 @@
 					<input type="radio" name="type" value="point" id="pointToggle"
 						   onclick="toggleControl(this);" />
 					<label for="pointToggle">Rich Text</label>
+				</li>
+				<li>
+					<input type="radio" name="type" value="icon" id="iconToggle"
+						   onclick="toggleControl(this);" />
+					<label for="iconToggle">Icon Annotation</label>
 				</li>
 			</ul>		
 		</div>
