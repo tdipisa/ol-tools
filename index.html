@@ -7,36 +7,44 @@
 		
         <title>OL-Tools</title>
 
-        <link rel="stylesheet" href="theme/css/oltools.css" type="text/css">
-		
+		<!-- OL-Tools CSS -->
+        <link rel="stylesheet" href="theme/css/oltools.css" type="text/css">	
+
+		<!-- OpenLayers CSS -->
         <link rel="stylesheet" href="lib/openlayers/theme/default/style.css" type="text/css">
 		
+		<!-- JQuery-UI CSS -->
         <!--link rel="stylesheet" href="lib/jquery-ui-1.11.0/jquery-ui.css" type="text/css">
         <link rel="stylesheet" href="lib/jquery-ui-1.11.0/jquery-ui.structure.css" type="text/css">
         <link rel="stylesheet" href="lib/jquery-ui-1.11.0/jqueryui-editable.css" type="text/css"-->
 
+		<!-- OpenLayers JS lib -->
 		<!-- Only for test purpose 
         <script src="lib/openlayers/lib/OpenLayers.js"></script>-->
         <script src="lib/openlayers/OpenLayers.js"></script>
 		
+		<!-- OpenLayers-Ext JS lib -->
 		<script src="lib/openlayers-ext/ExtendedRenderers.js"></script>
 		<script src="lib/openlayers-ext/DeleteFeature.js"></script>
 		<script src="lib/openlayers-ext/HTMLMarkers.js"></script>
 		<script src="lib/openlayers-ext/HTMLMarkerLabel.js"></script>
 		
+		<!-- JQuery JS lib -->
 		<script src="lib/jquery-ui-1.11.0/external/jquery/jquery.js"></script>
 		<script src="lib/jquery-ui-1.11.0/jquery-ui.js"></script>
 		<!--script src="lib/jquery-ui-1.11.0/jqueryui-editable.js"></script-->
 		
+		<!-- OL-Tools JS lib -->
 		<script src="scripts/OLTools.js"></script>
+		<script src="scripts/Event.js"></script>
 		<script src="scripts/Tool.js"></script>		
 		<script src="scripts/EditPopup.js"></script>
 		<script src="scripts/RichTextEditPopup.js"></script>
-		<script src="scripts/Annotation.js"></script>
 		<script src="scripts/LinearAnnotation.js"></script>
 		<script src="scripts/IconAnnotation.js"></script>
 		<script src="scripts/RichText.js"></script>
 		
+		<!-- CKEditor JS lib -->
 		<script src="lib/ckeditor_4.4.3_standard/ckeditor.js"></script>
 		<script src="lib/ckeditor_4.4.3_standard/adapters/jquery.js"></script>
 
@@ -156,7 +164,7 @@
 						linearAnnotation.activate();
 						map.zoomToExtent(new OpenLayers.Bounds(146.44, -41.54, 147.14, -40.75));
 					}					
-				}else if(tool.value == "point"){
+				}else if(tool.value == "text"){
 					if(linearAnnotation.active){
 						linearAnnotation.deactivate();
 					}
@@ -167,7 +175,7 @@
 					
 					if(!richText.active){
 						richText.activate();
-						map.zoomToExtent(new OpenLayers.Bounds(-180, -90, 180, 90));
+						map.zoomToExtent(new OpenLayers.Bounds(-139.57, -100.19, 140.62, 110.39));
 					}	
 				}else if(tool.value == "icon"){
 					if(linearAnnotation.active){
@@ -202,9 +210,9 @@
 					<label for="lineToggle">Line Annotation</label>
 				</li>
 				<li>
-					<input type="radio" name="type" value="point" id="pointToggle"
+					<input type="radio" name="type" value="text" id="textToggle"
 						   onclick="toggleControl(this);" />
-					<label for="pointToggle">Rich Text</label>
+					<label for="textToggle">Rich Text</label>
 				</li>
 				<li>
 					<input type="radio" name="type" value="icon" id="iconToggle"

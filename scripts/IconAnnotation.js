@@ -43,12 +43,7 @@ OLTools.Tool.IconAnnotation = OLTools.Class(OLTools.Tool, {
 		// Set the internal icon list to use 
 		//
 		var defaultIconList = [
-			{name: "Default Icon", url: "theme/img/markers/default_information.png", isDefault: true},
-			{name: "Agritourism", url: "theme/img/markers/agritourism.png"},
-			{name: "Bigcity", url: "theme/img/markers/bigcity.png"},
-			{name: "Bridge mModern", url: "theme/img/markers/bridge_modern.png"},
-			{name: "Arch", url: "theme/img/markers/arch.png"},
-			{name: "Cathedral", url: "theme/img/markers/cathedral.png"}
+			{name: "Default Icon", url: this.defaultIcon, isDefault: true}
 		];
 		this.iconsList = options.iconsList ? options.iconsList : defaultIconList;		
 
@@ -113,21 +108,22 @@ OLTools.Tool.IconAnnotation = OLTools.Class(OLTools.Tool, {
 			}	
 
 			this.attachEventListeners();
-
 			this.map.addLayers([this.layer]);
 			
 			// /////////////////////////////////////
 			// Defining Draw and Modify controls
 			// /////////////////////////////////////
+			var drawIcon, select, del;
+			
 			this.drawFeature = new OpenLayers.Control.DrawFeature(this.layer, OpenLayers.Handler.Point, {
 				autoActivate: false
 			});
 			this.controls.push(this.drawFeature);
 			
 			// /////////////////////////////////////
-			// Draw Point Control Button
+			// Draw Icon Control Button
 			// /////////////////////////////////////
-		    var drawIcon = new OpenLayers.Control.Button({
+		    drawIcon = new OpenLayers.Control.Button({
 				displayClass: "olControlDrawFeaturePoint", 
 				id: "drawPoint",
 				type: OpenLayers.Control.TYPE_TOGGLE
@@ -136,38 +132,45 @@ OLTools.Tool.IconAnnotation = OLTools.Class(OLTools.Tool, {
 				this.hideEditPopup();
 				this.hideIconsPopup();
 				
+				if(select && select.active) select.deactivate();
+				if(del && del.active) del.deactivate();
+				
 				var position = {
 					x: this.map.div.clientWidth/2,
-					y: this.map.div.clientHeight/2
+					y: 50 //this.map.div.clientHeight/2
 				};				
 				this.showIconListPopup(position);	
 			});
-			drawIcon.events.register('deactivate', this, function(){
+			drawIcon.events.register('deactivate', this, function(){			
 				this.hideEditPopup();
 				this.hideIconsPopup();
 				
-				this.drawFeature.deactivate();
-				
-				if(!this.popup.featureModified.attributes && !this.popup.featureModified.saved){
+				if(!this.popup.featureModified.attributes && 
+					!this.popup.featureModified.saved &&
+						this.popup.feature){
 					this.layer.destroyFeatures([this.popup.feature]);					
 				}
+				
+				this.drawFeature.deactivate();
 			});
 			this.controls.push(drawIcon);
 
 			// /////////////////////////////////////
 			// Delete Control
 			// /////////////////////////////////////
-			var del = new DeleteFeature(this.layer, {title: "Delete Feature"});
+			del = new DeleteFeature(this.layer, {title: "Delete Feature"});
 			
 			del.events.register('activate', this, function(){
 				this.hideEditPopup();
+				this.hideIconsPopup();				
+				if(drawIcon.active) drawIcon.deactivate();
 			});		   
 		    this.controls.push(del);
 			
 			// /////////////////////////////////////
 			// Select Control
 			// /////////////////////////////////////
-			var select = new OpenLayers.Control.SelectFeature(
+			select = new OpenLayers.Control.SelectFeature(
 				this.layer,
 				{
 					title: this.selectControlName,
@@ -177,8 +180,12 @@ OLTools.Tool.IconAnnotation = OLTools.Class(OLTools.Tool, {
 					hover: false,
 					displayClass: "olControlSelectFeature"
 				}
-			);
-			
+			);			
+			select.events.register('activate', this, function(){
+				this.hideEditPopup();
+				this.hideIconsPopup();				
+				if(drawIcon.active) drawIcon.deactivate();
+			});				
 			select.events.register('deactivate', this, function(){
 				select.unselectAll();
 				this.hideEditPopup();
@@ -196,6 +203,23 @@ OLTools.Tool.IconAnnotation = OLTools.Class(OLTools.Tool, {
 			this.panel.addControls(this.controls);			
 			this.map.addControl(this.panel);
 			
+			// ///////////////////////////////////
+			// Register events for the edit popup
+			// ///////////////////////////////////
+			this.popup.events.close.register(function(elem, args, scope){
+				if(drawIcon.active){
+					scope.drawFeature.activate();
+				}
+			}, this);
+			
+			this.popup.events.save.register(function(elem, args, scope){
+				//alert("saved");
+				if(drawIcon.active){
+					scope.drawFeature.activate();
+				}
+			}, this);
+			
+			// Activate the tool
 			this.active = true;
 		}else{
 			this.active = false;
@@ -276,8 +300,7 @@ OLTools.Tool.IconAnnotation = OLTools.Class(OLTools.Tool, {
 					this.showEditPopup(feature, true);
 				}
 				
-				if(this.drawFeature)this.drawFeature.deactivate();
-				
+				if(this.drawFeature && this.drawFeature.active) this.drawFeature.deactivate();				
 			},
 			beforefeaturemodified: function(evt){
 				this.popup.prevFeature = evt.feature.clone();

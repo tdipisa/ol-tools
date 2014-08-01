@@ -1,9 +1,5 @@
 OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 
-	/**
-	prevFeature:
-	*/
-	
 	feature: null,
 	
 	featureModified: {
@@ -14,11 +10,19 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 	
     initialize: function(options) {
 		OLTools.Tool.prototype.initialize.apply(this, arguments);
+		this.id = OpenLayers.Util.createUniqueID("EditPopup_");
 		
 		this.featureModified = {
 			geometry: false,
 			attributes: false
 		};
+		
+		// /////////////////////////////////////
+		// Create events for this component
+		// /////////////////////////////////////
+		this.events = {};
+		this.events.close = new OLTools.Event("close");
+		this.events.save = new OLTools.Event("save");
 	},
 	
 	createPopup: function(){
@@ -156,6 +160,10 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 				
 				editPopup.restoreFeatureModified(false);
 				editPopup.hide();
+				
+				if(editPopup.events.close){
+					editPopup.events.close.fire(editPopup, {message: "closed"});
+				}
 			});
 			
 			$("#popup_save_button").click(function(){
@@ -206,6 +214,10 @@ OLTools.Tool.EditPopup = OLTools.Class(OLTools.Tool, {
 					
 					editPopup.restoreFeatureModified(true);
 					editPopup.hide();
+					
+					if(editPopup.events.save){
+						editPopup.events.save.fire(editPopup, {message: "saved"});
+					}
 				}
 			});
 		}else{

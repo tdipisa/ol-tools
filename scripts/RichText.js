@@ -77,7 +77,7 @@ OLTools.Tool.RichText = OLTools.Class(OLTools.Tool, {
 
 				var markerFeature = new OpenLayers.HTMLFeature(this.layer, position, data);			
 				this.layer.features.push(markerFeature);
-				var marker = markerFeature.createMarker(data.attributes[this.textAttribute], this.layer.markerClick);
+				var marker = markerFeature.createMarker(data.attributes[this.textAttribute], this.layer.useIconStyle, this.layer.markerClick);
 				this.layer.addMarker(marker);
 				
 				this.showEditPopup(markerFeature, true);	

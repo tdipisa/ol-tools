@@ -102,7 +102,9 @@ OLTools.Tool.LinearAnnotation = OLTools.Class(OLTools.Tool, {
 		
 			drawLine.events.register('deactivate', this, function(){
 				this.hideEditPopup();				
-				if(!this.popup.featureModified.attributes && !this.popup.featureModified.saved){
+				if(!this.popup.featureModified.attributes 
+					&& !this.popup.featureModified.saved &&
+						this.popup.feature){
 					this.layer.destroyFeatures([this.popup.feature]);					
 				}
 			});
