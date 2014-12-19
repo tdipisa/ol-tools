@@ -249,6 +249,7 @@ OLTools.Tool.IconAnnotation = OLTools.Class(OLTools.Tool, {
 			this.featureAttributes = [];
 			
 			this.hideEditPopup();
+			this.hideIconsPopup();
 			
 			this.active = false;
 		}
